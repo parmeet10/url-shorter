@@ -2,6 +2,7 @@ import status from '../configs/status.js';
 
 import wrapperService from './wrapper.js';
 import utilsService from './utils.js';
+import redisService from '../services/redis.js';
 
 import urlsModel from '../models/urls.js';
 
@@ -42,6 +43,12 @@ const shortenUrl = async (params) => {
 
     url = await urlsModel.createUrl(urlParams);
     delete url.id;
+
+    await redisService.redisClient.set(`long:${params.longUrl}`, url.short_url);
+    await redisService.redisClient.set(
+      `short:${url.short_url}`,
+      params.longUrl,
+    );
   } else {
     let urlParams = {};
     urlParams.longUrl = params.longUrl;
@@ -58,6 +65,12 @@ const shortenUrl = async (params) => {
     updateUrlParams.shortUrl = `/api/shorten/${shortUrl.toString()}`;
 
     url = await urlsModel.updateUrl(updateUrlParams);
+
+    await redisService.redisClient.set(`long:${params.longUrl}`, url.short_url);
+    await redisService.redisClient.set(
+      `short:${url.short_url}`,
+      params.longUrl,
+    );
   }
 
   let response = status.getStatus('success');
