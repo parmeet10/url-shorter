@@ -41,6 +41,13 @@ const getStatus = (code) => {
         message: 'URL not found',
       };
       break;
+    case 'alias_exists':
+      status = {
+        code: code,
+        error: true,
+        message: 'Alias already exists.',
+      };
+      break;
 
     case 'generic_fail':
     default:

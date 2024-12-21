@@ -13,8 +13,22 @@ const generateRandom = () => {
   return uuidv4().replace(/-/g, '');
 };
 
+const encodebase62 = (number) => {
+  const BASE62_CHARS =
+    '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let encoded = '';
+  
+  while (number > 0) {
+    const remainder = number % 62;
+    encoded = BASE62_CHARS[remainder] + encoded;
+    number = Math.floor(number / 62);
+  }
+  return encoded;
+};
+
 export default {
   sanitizeSqlResult: sanitizeSqlResult,
   addDays: addDays,
   generateRandom: generateRandom,
+  encodebase62: encodebase62,
 };
