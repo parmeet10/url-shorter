@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/parmeet10/fitXperts_Backend.git"
+    "url": "git+https://github.com/parmeet10/url-shortner.git"
   },
   "author": "Parmeet Singh",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/parmeet10/fitXperts_Backend/issues"
+    "url": "https://github.com/parmeet10/url-shortner/issues"
   },
-  "homepage": "https://github.com/parmeet10/fitXperts_Backend#readme",
+  "homepage": "https://github.com/parmeet10/url-shortner#readme",
   "dependencies": {
     "@aws-sdk/client-ses": "^3.678.0",
     "default-user-agent": "^1.0.0",

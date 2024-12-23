@@ -65,21 +65,48 @@ const shortenUrl = async (params) => {
     updateUrlParams.shortUrl = `/api/shorten/${shortUrl.toString()}`;
 
     url = await urlsModel.updateUrl(updateUrlParams);
+    delete url.id;
 
-    await redisService.redisClient.set(`long:${params.longUrl}`, url.short_url);
-    await redisService.redisClient.set(
+    await redisService.setValueInRedis(`long:${params.longUrl}`, url.short_url);
+    await redisService.setValueInRedis(
       `short:${url.short_url}`,
       params.longUrl,
     );
   }
 
   let response = status.getStatus('success');
-    response.data = {};
-    response.data.url = url;
+  response.data = {};
+  response.data.urlData = url;
+
+  return response;
+};
+
+const urlRedirector = async (params) => {
+  if (!params.shortUrl) throw new Error('input_missing');
+
+  let urlData = await redisService.getValueFromRedis(
+    `short:${params.shortUrl}`,
+  );
+
+  if (!urlData) {
+    let urlDataParams = {};
+    urlDataParams.shortUrl = params.shortUrl;
+
+    urlData = await urlsModel.getUrl(urlDataParams);
+  }
+
+  if (!urlData) {
+    throw new Error('resource_missing');
+  }
+
+  let response = status.getStatus('success');
+  response.data = {};
+  response.data.urlData = urlData;
 
   return response;
 };
 
 export default {
   shortenUrl: wrapperService.wrap(shortenUrl),
+  urlRedirector: wrapperService.wrap(urlRedirector),
 };

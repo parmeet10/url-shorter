@@ -36,6 +36,24 @@ async function setValueInRedis(key, value) {
   }
 }
 
+async function getValueFromRedis(key) {
+  try {
+    const result = await Promise.race([
+      redisClient.get(key),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Operation timed out')), 2000),
+      ),
+    ]);
+    console.log('Value retrieved from Redis:', result);
+    return result;
+  } catch (err) {
+    console.log('Failed to retrieve value from Redis:', err);
+    return null;
+  }
+}
+
 export default {
   setValueInRedis: setValueInRedis,
+  getValueFromRedis: getValueFromRedis,
+  redisClient: redisClient,
 };

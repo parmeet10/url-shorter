@@ -48,6 +48,13 @@ const getStatus = (code) => {
         message: 'Alias already exists.',
       };
       break;
+    case 'resource_missing':
+      status = {
+        code: code,
+        error: true,
+        message: 'URL for redirection not found.',
+      };
+      break;
 
     case 'generic_fail':
     default:
