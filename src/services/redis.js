@@ -1,8 +1,10 @@
 import Redis from 'ioredis';
 
+import config from '../configs/config.js';
+
 const redisClient = new Redis({
-  host: '127.0.0.1', // Default Redis host
-  port: 6379, // Default Redis port
+  host: config.REDIS.host || 'redis',
+  port: config.REDIS.port || 6379,
   retryStrategy(times) {
     return Math.min(times * 50, 2000); // Reconnect logic
   },
