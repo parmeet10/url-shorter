@@ -74,8 +74,8 @@ const shortenUrl = async (params) => {
   }
 
   let response = status.getStatus('success');
-  //   response.data = {};
-  //   response.data.url = url;
+    response.data = {};
+    response.data.url = url;
 
   return response;
 };
