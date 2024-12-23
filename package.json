@@ -1,7 +1,7 @@
 {
-  "name": "fitxperts_backend",
+  "name": "url_shortner_backend",
   "version": "1.0.0",
-  "description": "Backend source code for fitXperts",
+  "description": "Backend source code for urlShortner",
   "main": "server.js",
   "type": "module",
   "scripts": {
