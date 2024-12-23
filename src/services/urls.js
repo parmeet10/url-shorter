@@ -44,8 +44,8 @@ const shortenUrl = async (params) => {
     url = await urlsModel.createUrl(urlParams);
     delete url.id;
 
-    await redisService.redisClient.set(`long:${params.longUrl}`, url.short_url);
-    await redisService.redisClient.set(
+    await redisService.setValueInRedis(`long:${params.longUrl}`, url.short_url);
+    await redisService.setValueInRedis(
       `short:${url.short_url}`,
       params.longUrl,
     );
@@ -74,8 +74,8 @@ const shortenUrl = async (params) => {
   }
 
   let response = status.getStatus('success');
-  response.data = {};
-  response.data.url = url;
+    response.data = {};
+    response.data.url = url;
 
   return response;
 };
