@@ -6,8 +6,15 @@ const shortenUrl = async (req, res) => {
     throw new Error('input_missing');
   }
 
+  let longUrl;
+  try {
+    longUrl = new URL(req.body.longUrl);
+  } catch (e) {
+    throw new Error('invalid_url', e);
+  }
+
   let shortenUrlParams = {};
-  shortenUrlParams.longUrl = req.body.longUrl;
+  shortenUrlParams.longUrl = longUrl.href;
   shortenUrlParams.userId = req._user.id;
   req.body.alias ? (shortenUrlParams.alias = req.body.alias) : null;
   req.body.topic ? (shortenUrlParams.topic = req.body.topic) : null;

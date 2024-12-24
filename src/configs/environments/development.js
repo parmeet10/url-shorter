@@ -21,6 +21,10 @@ const KNEX_CONFIG = {
   connection: postgresConnectionString,
 };
 
+const SERVER = {
+  hostName: process.env.DEVELOPMENT_HOST,
+};
+
 const knex = Knex(KNEX_CONFIG);
 
 const AUTH = {
@@ -42,6 +46,7 @@ const config = {
   AUTH: AUTH,
   OAUTH: OAUTH,
   REDIS: REDIS,
+  SERVER: SERVER,
 };
 
 export default config;

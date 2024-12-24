@@ -55,6 +55,13 @@ const getStatus = (code) => {
         message: 'URL for redirection not found.',
       };
       break;
+    case 'invalid_url':
+      status = {
+        code: code,
+        error: true,
+        message: 'URL must be like: http://www.example.com',
+      };
+      break;
 
     case 'generic_fail':
     default:

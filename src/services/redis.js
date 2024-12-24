@@ -22,10 +22,10 @@ redisClient.on('error', (error) => {
   console.error('Redis error:', error);
 });
 
-async function setValueInRedis(key, value) {
+async function setValueInRedis(key, value, expirationInSeconds = 10) {
   try {
     const result = await Promise.race([
-      redisClient.set(key, value),
+      redisClient.set(key, value, 'EX', expirationInSeconds),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Operation timed out')), 2000),
       ),

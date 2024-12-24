@@ -5,6 +5,7 @@ import utilsService from './utils.js';
 import redisService from '../services/redis.js';
 
 import urlsModel from '../models/urls.js';
+import config from '../configs/config.js';
 
 const shortenUrl = async (params) => {
   if (!params.longUrl) {
@@ -19,6 +20,15 @@ const shortenUrl = async (params) => {
 
   if (existingUrl) {
     if (existingUrl.long_url == params.longUrl) {
+      await redisService.setValueInRedis(
+        `long:${existingUrl.long_url}`,
+        existingUrl.short_url,
+      );
+      await redisService.setValueInRedis(
+        `short:${existingUrl.short_url}`,
+        existingUrl.long_url,
+      );
+
       let response = status.getStatus('success');
       response.data = {};
       response.data.urlData = {};
@@ -37,7 +47,7 @@ const shortenUrl = async (params) => {
     let urlParams = {};
     urlParams.longUrl = params.longUrl;
     urlParams.alias = params.alias;
-    urlParams.shortUrl = `/api/shorten/${params.alias}`;
+    urlParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${params.alias}`;
     urlParams.userId = params.userId;
     params.topic ? (urlParams.topic = params.topic) : null;
 
@@ -62,7 +72,7 @@ const shortenUrl = async (params) => {
 
     let updateUrlParams = {};
     updateUrlParams.urlId = parseInt(url.id);
-    updateUrlParams.shortUrl = `/api/shorten/${shortUrl.toString()}`;
+    updateUrlParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${shortUrl.toString()}`;
 
     url = await urlsModel.updateUrl(updateUrlParams);
     delete url.id;
@@ -84,13 +94,14 @@ const shortenUrl = async (params) => {
 const urlRedirector = async (params) => {
   if (!params.shortUrl) throw new Error('input_missing');
 
-  let urlData = await redisService.getValueFromRedis(
-    `short:${params.shortUrl}`,
+  let urlData = {};
+  urlData.long_url = await redisService.getValueFromRedis(
+    `short:${config.SERVER.hostName}/api/shorten/${params.shortUrl}`,
   );
 
-  if (!urlData) {
+  if (!urlData.long_url) {
     let urlDataParams = {};
-    urlDataParams.shortUrl = params.shortUrl;
+    urlDataParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${params.shortUrl}`;
 
     urlData = await urlsModel.getUrl(urlDataParams);
   }

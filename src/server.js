@@ -56,7 +56,8 @@ app.use((req, res) => {
 });
 
 // Global error handler
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   if (err) {
     console.log(new Date().toISOString(), err);
     res.json(err);
