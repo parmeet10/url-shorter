@@ -1,4 +1,5 @@
 import status from '../configs/status.js';
+import config from '../configs/config.js';
 
 import wrapperService from './wrapper.js';
 import utilsService from './utils.js';
@@ -6,7 +7,7 @@ import redisService from '../services/redis.js';
 import analyticsService from './analytics.js';
 
 import urlsModel from '../models/urls.js';
-import config from '../configs/config.js';
+
 
 const shortenUrl = async (params) => {
   if (!params.longUrl) {
@@ -99,7 +100,7 @@ const urlRedirector = async (params) => {
     ),
   );
 
-  if (!urlData.long_url) {
+  if (!urlData || !urlData.long_url) {
     let urlDataParams = {};
     urlDataParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${params.shortUrl}`;
 
@@ -125,7 +126,25 @@ const urlRedirector = async (params) => {
   return response;
 };
 
+const getUrlData = async (params) => {
+  if (!params.shortUrl) {
+    throw new Error('input_missing');
+  }
+
+  let getUrlDataParams = {};
+  getUrlDataParams.shortUrl = params.shortUrl;
+
+  let urlData = await urlsModel.getUrl(getUrlDataParams);
+
+  let response = status.getStatus('success');
+  response.data = {};
+  response.data.urlData = urlData;
+
+  return response;
+};
+
 export default {
   shortenUrl: wrapperService.wrap(shortenUrl),
   urlRedirector: wrapperService.wrap(urlRedirector),
+  getUrlData: wrapperService.wrap(getUrlData),
 };
