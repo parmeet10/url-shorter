@@ -23,5 +23,4 @@ const wrap = (inputFunction) => {
   };
 };
 
-
 export default { wrap: wrap };

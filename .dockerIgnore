@@ -1,0 +1,18 @@
+# Ignore node_modules and logs
+node_modules
+npm-debug.log
+
+# Ignore local environment files
+.env
+
+
+# Ignore build output
+build
+
+# Ignore Docker files
+Dockerfile
+docker-compose.yml
+
+# Ignore any local files you don't want in your image
+.git
+.gitignore

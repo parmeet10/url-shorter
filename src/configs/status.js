@@ -41,6 +41,27 @@ const getStatus = (code) => {
         message: 'URL not found',
       };
       break;
+    case 'alias_exists':
+      status = {
+        code: code,
+        error: true,
+        message: 'Alias already exists.',
+      };
+      break;
+    case 'resource_missing':
+      status = {
+        code: code,
+        error: true,
+        message: 'URL for redirection not found.',
+      };
+      break;
+    case 'invalid_url':
+      status = {
+        code: code,
+        error: true,
+        message: 'URL must be like: http://www.example.com',
+      };
+      break;
 
     case 'generic_fail':
     default:
