@@ -35,6 +35,38 @@ const analytics = async (params) => {
   let uniqueClicks = await analyticsModel.getClicksCount(uniqueClicksParams);
   analytics.uniqueClicks = parseInt(uniqueClicks.count);
 
+  let clicksByDateParams = {};
+  clicksByDateParams.urlId = urlData.data.urlData.id;
+
+  let clicksByDate = await analyticsModel.getClicksByDate(clicksByDateParams);
+  analytics.clicksByDate = clicksByDate.map((record) => ({
+    date: record.date,
+    clicks: parseInt(record.clicks),
+  }));
+
+  let clicksByOsTypeParams = {};
+  clicksByOsTypeParams.urlId = urlData.data.urlData.id;
+
+  let clicksByOsType =
+    await analyticsModel.getClicksByosType(clicksByOsTypeParams);
+  analytics.osType = clicksByOsType.map((record) => ({
+    osType: record.osType,
+    uniqueclicks: parseInt(record.uniqueClicks),
+    uniqueUsers: parseInt(record.uniqueUsers),
+  }));
+
+  let clicksByDeviceTypeParams = {};
+  clicksByDeviceTypeParams.urlId = urlData.data.urlData.id;
+
+  let clicksByDeviceType = await analyticsModel.getClicksByDeviceType(
+    clicksByDeviceTypeParams,
+  );
+  analytics.deviceType = clicksByDeviceType.map((record) => ({
+    deviceType: record.deviceType,
+    uniqueclicks: parseInt(record.uniqueClicks),
+    uniqueUsers: parseInt(record.uniqueUsers),
+  }));
+
   let response = status.getStatus('success');
   response.data = {};
   response.data.analytics = analytics;
@@ -43,7 +75,13 @@ const analytics = async (params) => {
 };
 
 const createClick = async (params) => {
-  if (!params.ipAddress || !params.urlId || !params.userId) {
+  if (
+    !params.ipAddress ||
+    !params.urlId ||
+    !params.userId ||
+    !params.osType ||
+    !params.deviceType
+  ) {
     throw new Error('input_missing');
   }
 
@@ -51,6 +89,8 @@ const createClick = async (params) => {
   createClickParams.ipAddress = params.ipAddress;
   createClickParams.urlId = params.urlId;
   createClickParams.userId = params.userId;
+  createClickParams.osType = params.osType;
+  createClickParams.deviceType = params.deviceType;
 
   const click = await analyticsModel.createClick(createClickParams);
 

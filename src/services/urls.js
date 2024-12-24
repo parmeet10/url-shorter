@@ -8,7 +8,6 @@ import analyticsService from './analytics.js';
 
 import urlsModel from '../models/urls.js';
 
-
 const shortenUrl = async (params) => {
   if (!params.longUrl) {
     throw new Error('input_missing');
@@ -90,7 +89,13 @@ const shortenUrl = async (params) => {
 };
 
 const urlRedirector = async (params) => {
-  if (!params.shortUrl || !params.ipAddress || !params.userId)
+  if (
+    !params.shortUrl ||
+    !params.ipAddress ||
+    !params.userId ||
+    !params.osType ||
+    !params.deviceType
+  )
     throw new Error('input_missing');
 
   let urlData = {};
@@ -115,6 +120,8 @@ const urlRedirector = async (params) => {
   analyticsServiceParams.ipAddress = params.ipAddress;
   analyticsServiceParams.urlId = urlData.id;
   analyticsServiceParams.userId = params.userId;
+  analyticsServiceParams.osType = params.osType;
+  analyticsServiceParams.deviceType = params.deviceType;
 
   // CREATING CLICK ASYNCHRONOUSLY
   analyticsService.createClick(analyticsServiceParams);

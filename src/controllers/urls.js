@@ -1,3 +1,5 @@
+import { UAParser } from 'ua-parser-js';
+
 import wrapperService from '../services/wrapper.js';
 import urlsService from '../services/urls.js';
 
@@ -29,12 +31,17 @@ const urlRedirector = async (req, res) => {
     throw new Error('input_missing');
   }
 
+  const userAgent = new UAParser(req.headers['user-agent']);
+
   const urlRedirectorParams = {};
   urlRedirectorParams.shortUrl = req.params.alias;
   urlRedirectorParams.userId = req._user.id;
   req.ip == '::1'
     ? (urlRedirectorParams.ipAddress = '127.0.0.1')
     : (urlRedirectorParams.ipAddress = req.ip);
+  urlRedirectorParams.osType = userAgent.getOS().name || 'unknown os';
+  urlRedirectorParams.devicType =
+    userAgent.getDevice().type || 'unknown device';
 
   let result = await urlsService.urlRedirector(urlRedirectorParams);
 
