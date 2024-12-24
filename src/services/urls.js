@@ -3,6 +3,7 @@ import status from '../configs/status.js';
 import wrapperService from './wrapper.js';
 import utilsService from './utils.js';
 import redisService from '../services/redis.js';
+import analyticsService from './analytics.js';
 
 import urlsModel from '../models/urls.js';
 import config from '../configs/config.js';
@@ -21,12 +22,8 @@ const shortenUrl = async (params) => {
   if (existingUrl) {
     if (existingUrl.long_url == params.longUrl) {
       await redisService.setValueInRedis(
-        `long:${existingUrl.long_url}`,
-        existingUrl.short_url,
-      );
-      await redisService.setValueInRedis(
         `short:${existingUrl.short_url}`,
-        existingUrl.long_url,
+        JSON.stringify({ long_url: params.longUrl, id: existingUrl.id }),
       );
 
       let response = status.getStatus('success');
@@ -52,13 +49,13 @@ const shortenUrl = async (params) => {
     params.topic ? (urlParams.topic = params.topic) : null;
 
     url = await urlsModel.createUrl(urlParams);
-    delete url.id;
 
-    await redisService.setValueInRedis(`long:${params.longUrl}`, url.short_url);
     await redisService.setValueInRedis(
       `short:${url.short_url}`,
-      params.longUrl,
+      JSON.stringify({ long_url: params.longUrl, id: url.id }),
     );
+
+    delete url.id;
   } else {
     let urlParams = {};
     urlParams.longUrl = params.longUrl;
@@ -75,13 +72,13 @@ const shortenUrl = async (params) => {
     updateUrlParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${shortUrl.toString()}`;
 
     url = await urlsModel.updateUrl(updateUrlParams);
-    delete url.id;
 
-    await redisService.setValueInRedis(`long:${params.longUrl}`, url.short_url);
     await redisService.setValueInRedis(
       `short:${url.short_url}`,
-      params.longUrl,
+      JSON.stringify({ long_url: params.longUrl, id: url.id }),
     );
+
+    delete url.id;
   }
 
   let response = status.getStatus('success');
@@ -92,11 +89,14 @@ const shortenUrl = async (params) => {
 };
 
 const urlRedirector = async (params) => {
-  if (!params.shortUrl) throw new Error('input_missing');
+  if (!params.shortUrl || !params.ipAddress || !params.userId)
+    throw new Error('input_missing');
 
   let urlData = {};
-  urlData.long_url = await redisService.getValueFromRedis(
-    `short:${config.SERVER.hostName}/api/shorten/${params.shortUrl}`,
+  urlData = JSON.parse(
+    await redisService.getValueFromRedis(
+      `short:${config.SERVER.hostName}/api/shorten/${params.shortUrl}`,
+    ),
   );
 
   if (!urlData.long_url) {
@@ -109,6 +109,14 @@ const urlRedirector = async (params) => {
   if (!urlData) {
     throw new Error('resource_missing');
   }
+
+  let analyticsServiceParams = {};
+  analyticsServiceParams.ipAddress = params.ipAddress;
+  analyticsServiceParams.urlId = urlData.id;
+  analyticsServiceParams.userId = params.userId;
+
+  // CREATING CLICK ASYNCHRONOUSLY
+  analyticsService.createClick(analyticsServiceParams);
 
   let response = status.getStatus('success');
   response.data = {};

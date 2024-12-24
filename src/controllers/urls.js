@@ -31,6 +31,10 @@ const urlRedirector = async (req, res) => {
 
   const urlRedirectorParams = {};
   urlRedirectorParams.shortUrl = req.params.alias;
+  urlRedirectorParams.userId = req._user.id;
+  req.ip == '::1'
+    ? (urlRedirectorParams.ipAddress = '127.0.0.1')
+    : (urlRedirectorParams.ipAddress = req.ip);
 
   let result = await urlsService.urlRedirector(urlRedirectorParams);
 
