@@ -67,6 +67,10 @@ const getClicksByDate = async (params) => {
 
   const result = await clicksByDateQuery;
 
+  if (!result || result.length === 0) {
+    return null;
+  }
+
   return utilsService.sanitizeSqlResult(result);
 };
 
@@ -84,6 +88,10 @@ const getClicksByosType = async (params) => {
     .from('clicks as c');
 
   let result = await clicksByOsTypeQuery;
+
+  if (!result || result.length === 0) {
+    return null;
+  }
 
   return utilsService.sanitizeSqlResult(result);
 };
@@ -103,6 +111,49 @@ const getClicksByDeviceType = async (params) => {
 
   let result = await clicksByDeviceTypeQuery;
 
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  return utilsService.sanitizeSqlResult(result);
+};
+
+const getTotalClicksData = async (params) => {
+  const totalClicksDataQuery = config.knex
+    .from('clicks as c')
+    .join('urls as u', { 'u.id': 'c.url_id' });
+
+  params.topic ? totalClicksDataQuery.where('u.topic', params.topic) : null;
+  params.distinct
+    ? totalClicksDataQuery.countDistinct('c.user_id as uniqueClicks')
+    : totalClicksDataQuery.count('c.id as totalClicks');
+
+  const result = await totalClicksDataQuery;
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  return utilsService.sanitizeSqlResult(result[0]);
+};
+
+const getAllUrlsData = async (params) => {
+  const allUrlsDataQuery = config.knex
+    .select('u.short_url as shortUrl')
+    .join('clicks as c', { 'c.url_id': 'u.id' })
+    .count('c.id as totalClicks')
+    .countDistinct('c.user_id as uniqueClicks')
+    .groupBy('u.short_url')
+    .from('urls as u');
+
+  params.topic ? allUrlsDataQuery.where('u.topic', params.topic) : null;
+  console.log(allUrlsDataQuery.toString());
+  const result = await allUrlsDataQuery;
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
   return utilsService.sanitizeSqlResult(result);
 };
 
@@ -112,4 +163,6 @@ export default {
   getClicksByDate: wrapperService.wrap(getClicksByDate),
   getClicksByosType: wrapperService.wrap(getClicksByosType),
   getClicksByDeviceType: wrapperService.wrap(getClicksByDeviceType),
+  getTotalClicksData: wrapperService.wrap(getTotalClicksData),
+  getAllUrlsData: wrapperService.wrap(getAllUrlsData),
 };

@@ -74,6 +74,51 @@ const analytics = async (params) => {
   return response;
 };
 
+const topicAnalytics = async (params) => {
+  if (!params.topic) {
+    throw new Error('input_missing');
+  }
+
+  let topicAnalytics = {};
+
+  let totalClicksOnTopicParams = {};
+  totalClicksOnTopicParams.topic = params.topic;
+
+  let totalClicksOnTopic = await analyticsModel.getTotalClicksData(
+    totalClicksOnTopicParams,
+  );
+  topicAnalytics.totalClicks = parseInt(totalClicksOnTopic.totalClicks);
+
+  let totalDistinctClicksOnTopicParams = {};
+  totalDistinctClicksOnTopicParams.topic = params.topic;
+  totalDistinctClicksOnTopicParams.distinct = true;
+
+  let totalDistinctCLicksOnTopic = await analyticsModel.getTotalClicksData(
+    totalDistinctClicksOnTopicParams,
+  );
+  topicAnalytics.uniqueClicks = parseInt(
+    totalDistinctCLicksOnTopic.uniqueClicks,
+  );
+
+  let allUrlsDataOnTopicParams = {};
+  allUrlsDataOnTopicParams.topic = params.topic;
+
+  let allUrlsDataOnTopic = await analyticsModel.getAllUrlsData(
+    allUrlsDataOnTopicParams,
+  );
+  topicAnalytics.urls = allUrlsDataOnTopic.map((record) => ({
+    shortUrl: record.shortUrl,
+    totalClicks: parseInt(record.totalClicks),
+    uniqueClicks: parseInt(record.uniqueClicks),
+  }));
+
+  let response = status.getStatus('success');
+  response.data = {};
+  response.data.topicAnalytics = topicAnalytics;
+
+  return response;
+};
+
 const createClick = async (params) => {
   if (
     !params.ipAddress ||
@@ -100,4 +145,5 @@ const createClick = async (params) => {
 export default {
   analytics: wrapperService.wrap(analytics),
   createClick: wrapperService.wrap(createClick),
+  topicAnalytics: wrapperService.wrap(topicAnalytics),
 };

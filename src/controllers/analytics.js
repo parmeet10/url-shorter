@@ -14,6 +14,28 @@ const analytics = async (req, res) => {
   return res.json(result);
 };
 
+const topicAnalytics = async (req, res) => {
+  if (!req.params.topic) {
+    throw new Error('input_missing');
+  }
+
+  if (
+    !['acquisition', 'activation', 'retention', 'unknown'].includes(
+      req.params.topic,
+    )
+  ) {
+    throw new Error('invalid_topic');
+  }
+
+  const topicAnalyticsParams = {};
+  topicAnalyticsParams.topic = req.params.topic;
+
+  let result = await analyticsService.topicAnalytics(topicAnalyticsParams);
+
+  return res.json(result);
+};
+
 export default {
   analytics: wrapperService.wrap(analytics),
+  topicAnalytics: wrapperService.wrap(topicAnalytics),
 };

@@ -62,6 +62,13 @@ const getStatus = (code) => {
         message: 'URL must be like: http://www.example.com',
       };
       break;
+    case 'invalid_topic':
+      status = {
+        code: code,
+        error: true,
+        message: 'Topic does not exist',
+      };
+      break;
 
     case 'generic_fail':
     default:
