@@ -1,20 +1,27 @@
 import defaultUserAgent from 'default-user-agent';
+import RateLimiter from '../services/rateLimiter.js';
 
 import wrapperService from '../services/wrapper.js';
 import authsService from '../services/auth.js';
 
+const limiter = new RateLimiter(180, 5);
+
 const middleware = async (req, res, next) => {
   let skip = false;
   console.log(`${req.method}: ${req.path}`);
-  // ON HOLD TILL FURTHER NOTICE
-  // if (
-  //   !req.headers['x-device-id'] ||s
-  //   !req.headers['x-origin'] ||
-  //   !req.headers['x-platform'] ||
-  //   !req.headers['x-version']
-  // ) {
-  //   throw new Error('headers_missing');
-  // }
+
+  if (
+    !req.headers['x-device-id'] ||
+    !req.headers['x-origin'] ||
+    !req.headers['x-platform'] ||
+    !req.headers['x-version']
+  ) {
+    throw new Error('headers_missing');
+  }
+
+   if (!limiter.checkLimit(req.ip)) {
+     throw new Error('rate_limited');
+   }
 
   const whitelistedRoutes = [
     {
@@ -52,19 +59,10 @@ const middleware = async (req, res, next) => {
     return next();
   }
 
-  // TODO: Remove this from here and uncomment at top
-  if (
-    !req.headers['x-device-id'] ||
-    !req.headers['x-origin'] ||
-    !req.headers['x-platform'] ||
-    !req.headers['x-version']
-  ) {
-    throw new Error('headers_missing');
-  }
-
   if (!req.headers['x-auth']) {
     throw new Error('headers_missing');
   }
+
   let authParams = {};
   authParams.originId = parseInt(req.headers['x-origin']);
   authParams.platformId = parseInt(req.headers['x-platform']);
