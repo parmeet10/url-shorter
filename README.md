@@ -18,7 +18,7 @@ Clone the repository containing the application code to your local machine:
 
 ```bash
 git clone git@github.com:parmeet10/url-shortner.git
-cd <url-shortner
+cd url-shortner
 ```
 ### 2. Set up Environment Variables
 ```bash
