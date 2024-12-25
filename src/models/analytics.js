@@ -27,7 +27,7 @@ const createClick = async (params) => {
 };
 
 const getClicksCount = async (params) => {
-  if (!params.urlId && params.id) {
+  if (!params.urlId && !params.id && !params.userId) {
     throw new Error('input_missing');
   }
 
@@ -38,6 +38,7 @@ const getClicksCount = async (params) => {
     : getClicksQuery.count('c.id as count');
   params.urlId ? getClicksQuery.where('c.url_id', params.urlId) : null;
   params.id ? getClicksQuery.where('c.id', params.id) : null;
+  params.userId ? getClicksQuery.where('c.user_id', params.userId) : null;
 
   let result = await getClicksQuery;
 
@@ -49,14 +50,13 @@ const getClicksCount = async (params) => {
 };
 
 const getClicksByDate = async (params) => {
-  if (!params.urlId) {
+  if (!params.urlId && !params.userId) {
     throw new Error('input_missing');
   }
 
-  const clicksByDateQuery = await config.knex
+  const clicksByDateQuery = config.knex
     .select(config.knex.raw('DATE(created_at) as date'))
     .count('c.id as clicks')
-    .where('c.url_id', params.urlId)
     .andWhere(
       'created_at',
       '>=',
@@ -64,6 +64,9 @@ const getClicksByDate = async (params) => {
     )
     .groupByRaw('DATE(created_at)')
     .from('clicks as c');
+
+  params.urlId ? clicksByDateQuery.where('c.url_id', params.urlId) : null;
+  params.userId ? clicksByDateQuery.where('c.user_id', params.userId) : null;
 
   const result = await clicksByDateQuery;
 
@@ -75,17 +78,19 @@ const getClicksByDate = async (params) => {
 };
 
 const getClicksByosType = async (params) => {
-  if (!params.urlId) {
+  if (!params.urlId && !params.userId) {
     throw new Error('input_missing');
   }
 
   const clicksByOsTypeQuery = config.knex
     .select('c.os_type as osType')
-    .countDistinct('c.id as uniqueClicks')
+    .countDistinct('c.ip_address as uniqueClicks')
     .countDistinct('c.user_id as uniqueUsers')
-    .where('c.url_id', params.urlId)
     .groupBy('os_type')
     .from('clicks as c');
+
+  params.urlId ? clicksByOsTypeQuery.where('c.url_id', params.urlId) : null;
+  params.userId ? clicksByOsTypeQuery.where('c.user_id', params.userId) : null;
 
   let result = await clicksByOsTypeQuery;
 
@@ -97,7 +102,7 @@ const getClicksByosType = async (params) => {
 };
 
 const getClicksByDeviceType = async (params) => {
-  if (!params.urlId) {
+  if (!params.urlId && !params.userId) {
     throw new Error('input_missing');
   }
 
@@ -105,9 +110,13 @@ const getClicksByDeviceType = async (params) => {
     .select('c.device_type as deviceType')
     .countDistinct('c.id as uniqueClicks')
     .countDistinct('c.user_id as uniqueUsers')
-    .where('c.url_id', params.urlId)
     .groupBy('device_type')
     .from('clicks as c');
+
+  params.urlId ? clicksByDeviceTypeQuery.where('c.url_id', params.urlId) : null;
+  params.userId
+    ? clicksByDeviceTypeQuery.where('c.user_id', params.userId)
+    : null;
 
   let result = await clicksByDeviceTypeQuery;
 
@@ -147,7 +156,7 @@ const getAllUrlsData = async (params) => {
     .from('urls as u');
 
   params.topic ? allUrlsDataQuery.where('u.topic', params.topic) : null;
-  console.log(allUrlsDataQuery.toString());
+
   const result = await allUrlsDataQuery;
 
   if (!result || result.length === 0) {

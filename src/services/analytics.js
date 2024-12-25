@@ -119,6 +119,75 @@ const topicAnalytics = async (params) => {
   return response;
 };
 
+const overallAnalytics = async (params) => {
+  if (!params.userId) {
+    throw new Error('input_missing');
+  }
+
+  let overallAnalytics = {};
+
+  let totalUrlsParams = {};
+  totalUrlsParams.userId = params.userId;
+
+  const totalUrls = await urlsService.totalUrls(totalUrlsParams);
+  overallAnalytics.totalUrls = totalUrls.data.totalUrls;
+
+  let totalClicksParams = {};
+  totalClicksParams.userId = params.userId;
+
+  const totalClicks = await analyticsModel.getClicksCount(totalClicksParams);
+  overallAnalytics.totalClicks = parseInt(totalClicks.count);
+
+  let totalUniqueClicksParams = {};
+  totalUniqueClicksParams.userId = params.userId;
+  totalUniqueClicksParams.distinct = true;
+
+  const totalUniqueClicks = await analyticsModel.getClicksCount(
+    totalUniqueClicksParams,
+  );
+  overallAnalytics.uniqueClicks = parseInt(totalUniqueClicks.count);
+
+  let totalClicksByDateParams = {};
+  totalClicksByDateParams.userId = params.userId;
+
+  const totalClicksByDate = await analyticsModel.getClicksByDate(
+    totalClicksByDateParams,
+  );
+  overallAnalytics.clicksByDate = totalClicksByDate.map((record) => ({
+    date: record.date,
+    clicks: parseInt(record.clicks),
+  }));
+
+  let clicksByOsTypeParams = {};
+  clicksByOsTypeParams.userId = params.userId;
+
+  let clicksByOsType =
+    await analyticsModel.getClicksByosType(clicksByOsTypeParams);
+  overallAnalytics.osType = clicksByOsType.map((record) => ({
+    osType: record.osType,
+    uniqueclicks: parseInt(record.uniqueClicks),
+    uniqueUsers: parseInt(record.uniqueUsers),
+  }));
+
+  let clicksByDeviceTypeParams = {};
+  clicksByDeviceTypeParams.userId = params.userId;
+
+  let clicksByDeviceType = await analyticsModel.getClicksByDeviceType(
+    clicksByDeviceTypeParams,
+  );
+  overallAnalytics.deviceType = clicksByDeviceType.map((record) => ({
+    deviceType: record.deviceType,
+    uniqueclicks: parseInt(record.uniqueClicks),
+    uniqueUsers: parseInt(record.uniqueUsers),
+  }));
+
+  let response = status.getStatus('success');
+  response.data = {};
+  response.data.overallAnalytics = overallAnalytics;
+
+  return response;
+};
+
 const createClick = async (params) => {
   if (
     !params.ipAddress ||
@@ -146,4 +215,5 @@ export default {
   analytics: wrapperService.wrap(analytics),
   createClick: wrapperService.wrap(createClick),
   topicAnalytics: wrapperService.wrap(topicAnalytics),
+  overallAnalytics: wrapperService.wrap(overallAnalytics),
 };

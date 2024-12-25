@@ -35,7 +35,17 @@ const topicAnalytics = async (req, res) => {
   return res.json(result);
 };
 
+const overallAnalytics = async (req, res) => {
+  let overAllAnalyticsParams = {};
+  overAllAnalyticsParams.userId = req._user.id;
+
+  let result = await analyticsService.overallAnalytics(overAllAnalyticsParams);
+
+  return res.json(result);
+};
+
 export default {
   analytics: wrapperService.wrap(analytics),
   topicAnalytics: wrapperService.wrap(topicAnalytics),
+  overallAnalytics: wrapperService.wrap(overallAnalytics),
 };

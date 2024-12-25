@@ -54,7 +54,6 @@ app.use('/api/analytics', analyticsRouter);
 
 // Catch 404s
 app.use((req, res) => {
-  console.log('asas');
   res.status(404).json(status.getStatus('url_missing'));
 });
 

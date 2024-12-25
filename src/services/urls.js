@@ -155,8 +155,26 @@ const getUrlData = async (params) => {
   return response;
 };
 
+const totalUrls = async (params) => {
+  if (!params.userId) {
+    throw new Error('input_missing');
+  }
+
+  let totalUrlsParams = {};
+  totalUrlsParams.userId = params.userId;
+
+  const totalUrls = await urlsModel.totalurls(totalUrlsParams);
+
+  let response = status.getStatus('success');
+  response.data = {};
+  response.data.totalUrls = parseInt(totalUrls.totalUrls);
+
+  return response;
+};
+
 export default {
   shortenUrl: wrapperService.wrap(shortenUrl),
   urlRedirector: wrapperService.wrap(urlRedirector),
   getUrlData: wrapperService.wrap(getUrlData),
+  totalUrls: wrapperService.wrap(totalUrls),
 };
