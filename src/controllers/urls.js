@@ -1,3 +1,5 @@
+import { UAParser } from 'ua-parser-js';
+
 import wrapperService from '../services/wrapper.js';
 import urlsService from '../services/urls.js';
 
@@ -17,7 +19,10 @@ const shortenUrl = async (req, res) => {
   shortenUrlParams.longUrl = longUrl.href;
   shortenUrlParams.userId = req._user.id;
   req.body.alias ? (shortenUrlParams.alias = req.body.alias) : null;
-  req.body.topic ? (shortenUrlParams.topic = req.body.topic) : null;
+  req.body.topic &&
+  ['acquisition', 'activation', 'retention'].includes(req.body.topic)
+    ? (shortenUrlParams.topic = req.body.topic)
+    : (shortenUrlParams.topic = 'unknown');
 
   let result = await urlsService.shortenUrl(shortenUrlParams);
 
@@ -29,8 +34,17 @@ const urlRedirector = async (req, res) => {
     throw new Error('input_missing');
   }
 
+  const userAgent = new UAParser(req.headers['user-agent']);
+
   const urlRedirectorParams = {};
   urlRedirectorParams.shortUrl = req.params.alias;
+  urlRedirectorParams.userId = req._user.id;
+  req.ip == '::1'
+    ? (urlRedirectorParams.ipAddress = '127.0.0.1')
+    : (urlRedirectorParams.ipAddress = req.ip);
+  urlRedirectorParams.osType = userAgent.getOS().name || 'unknown os';
+  urlRedirectorParams.deviceType =
+    userAgent.getDevice().type || 'unknown device';
 
   let result = await urlsService.urlRedirector(urlRedirectorParams);
 

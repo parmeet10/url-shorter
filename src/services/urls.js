@@ -1,11 +1,12 @@
 import status from '../configs/status.js';
+import config from '../configs/config.js';
 
 import wrapperService from './wrapper.js';
 import utilsService from './utils.js';
 import redisService from '../services/redis.js';
+import analyticsService from './analytics.js';
 
 import urlsModel from '../models/urls.js';
-import config from '../configs/config.js';
 
 const shortenUrl = async (params) => {
   if (!params.longUrl) {
@@ -21,12 +22,8 @@ const shortenUrl = async (params) => {
   if (existingUrl) {
     if (existingUrl.long_url == params.longUrl) {
       await redisService.setValueInRedis(
-        `long:${existingUrl.long_url}`,
-        existingUrl.short_url,
-      );
-      await redisService.setValueInRedis(
         `short:${existingUrl.short_url}`,
-        existingUrl.long_url,
+        JSON.stringify({ long_url: params.longUrl, id: existingUrl.id }),
       );
 
       let response = status.getStatus('success');
@@ -52,13 +49,13 @@ const shortenUrl = async (params) => {
     params.topic ? (urlParams.topic = params.topic) : null;
 
     url = await urlsModel.createUrl(urlParams);
-    delete url.id;
 
-    await redisService.setValueInRedis(`long:${params.longUrl}`, url.short_url);
     await redisService.setValueInRedis(
       `short:${url.short_url}`,
-      params.longUrl,
+      JSON.stringify({ long_url: params.longUrl, id: url.id }),
     );
+
+    delete url.id;
   } else {
     let urlParams = {};
     urlParams.longUrl = params.longUrl;
@@ -75,13 +72,13 @@ const shortenUrl = async (params) => {
     updateUrlParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${shortUrl.toString()}`;
 
     url = await urlsModel.updateUrl(updateUrlParams);
-    delete url.id;
 
-    await redisService.setValueInRedis(`long:${params.longUrl}`, url.short_url);
     await redisService.setValueInRedis(
       `short:${url.short_url}`,
-      params.longUrl,
+      JSON.stringify({ long_url: params.longUrl, id: url.id }),
     );
+
+    delete url.id;
   }
 
   let response = status.getStatus('success');
@@ -92,23 +89,47 @@ const shortenUrl = async (params) => {
 };
 
 const urlRedirector = async (params) => {
-  if (!params.shortUrl) throw new Error('input_missing');
+  if (
+    !params.shortUrl ||
+    !params.ipAddress ||
+    !params.userId ||
+    !params.osType ||
+    !params.deviceType
+  )
+    throw new Error('input_missing');
 
   let urlData = {};
-  urlData.long_url = await redisService.getValueFromRedis(
-    `short:${config.SERVER.hostName}/api/shorten/${params.shortUrl}`,
+  urlData = JSON.parse(
+    await redisService.getValueFromRedis(
+      `short:${config.SERVER.hostName}/api/shorten/${params.shortUrl}`,
+    ),
   );
 
-  if (!urlData.long_url) {
+  if (!urlData || !urlData.long_url) {
     let urlDataParams = {};
     urlDataParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${params.shortUrl}`;
 
     urlData = await urlsModel.getUrl(urlDataParams);
+
+    await redisService.setValueInRedis(
+      `short:${urlData.short_url}`,
+      JSON.stringify({ long_url: urlData.long_url, id: urlData.id }),
+    );
   }
 
   if (!urlData) {
     throw new Error('resource_missing');
   }
+
+  let analyticsServiceParams = {};
+  analyticsServiceParams.ipAddress = params.ipAddress;
+  analyticsServiceParams.urlId = urlData.id;
+  analyticsServiceParams.userId = params.userId;
+  analyticsServiceParams.osType = params.osType;
+  analyticsServiceParams.deviceType = params.deviceType;
+
+  // CREATING CLICK ASYNCHRONOUSLY
+  analyticsService.createClick(analyticsServiceParams);
 
   let response = status.getStatus('success');
   response.data = {};
@@ -117,7 +138,43 @@ const urlRedirector = async (params) => {
   return response;
 };
 
+const getUrlData = async (params) => {
+  if (!params.shortUrl) {
+    throw new Error('input_missing');
+  }
+
+  let getUrlDataParams = {};
+  getUrlDataParams.shortUrl = params.shortUrl;
+
+  let urlData = await urlsModel.getUrl(getUrlDataParams);
+
+  let response = status.getStatus('success');
+  response.data = {};
+  response.data.urlData = urlData;
+
+  return response;
+};
+
+const totalUrls = async (params) => {
+  if (!params.userId) {
+    throw new Error('input_missing');
+  }
+
+  let totalUrlsParams = {};
+  totalUrlsParams.userId = params.userId;
+
+  const totalUrls = await urlsModel.totalurls(totalUrlsParams);
+
+  let response = status.getStatus('success');
+  response.data = {};
+  response.data.totalUrls = parseInt(totalUrls.totalUrls);
+
+  return response;
+};
+
 export default {
   shortenUrl: wrapperService.wrap(shortenUrl),
   urlRedirector: wrapperService.wrap(urlRedirector),
+  getUrlData: wrapperService.wrap(getUrlData),
+  totalUrls: wrapperService.wrap(totalUrls),
 };

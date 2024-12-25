@@ -32,6 +32,25 @@ const getUrl = async (params) => {
   return utilsService.sanitizeSqlResult(result[0]);
 };
 
+const totalurls = async (params) => {
+  if (!params.userId) {
+    throw new Error('input_missing');
+  }
+
+  let totalUrlsQuery = config.knex
+    .count('u.id as totalUrls')
+    .from('urls as u')
+    .where('u.user_id', params.userId);
+
+  let result = await totalUrlsQuery;
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  return utilsService.sanitizeSqlResult(result[0]);
+};
+
 const createUrl = async (params) => {
   if (!params.longUrl || !params.userId) {
     throw new Error('input_missing');
@@ -79,4 +98,5 @@ export default {
   getUrl: wrapperService.wrap(getUrl),
   createUrl: wrapperService.wrap(createUrl),
   updateUrl: wrapperService.wrap(updateUrl),
+  totalurls: wrapperService.wrap(totalurls),
 };
