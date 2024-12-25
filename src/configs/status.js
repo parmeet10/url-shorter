@@ -69,6 +69,13 @@ const getStatus = (code) => {
         message: 'Topic does not exist',
       };
       break;
+    case 'rate_limited':
+      status = {
+        code: code,
+        error: true,
+        message: 'Your Ip is Rate Limited',
+      };
+      break;
 
     case 'generic_fail':
     default:
