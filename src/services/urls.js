@@ -110,16 +110,16 @@ const urlRedirector = async (params) => {
     urlDataParams.shortUrl = `${config.SERVER.hostName}/api/shorten/${params.shortUrl}`;
 
     urlData = await urlsModel.getUrl(urlDataParams);
-
-    await redisService.setValueInRedis(
-      `short:${urlData.short_url}`,
-      JSON.stringify({ long_url: urlData.long_url, id: urlData.id }),
-    );
   }
 
   if (!urlData) {
     throw new Error('resource_missing');
   }
+
+  await redisService.setValueInRedis(
+    `short:${config.SERVER.hostName}/api/shorten/${params.shortUrl}`,
+    JSON.stringify({ long_url: urlData.long_url, id: urlData.id }),
+  );
 
   let analyticsServiceParams = {};
   analyticsServiceParams.ipAddress = params.ipAddress;

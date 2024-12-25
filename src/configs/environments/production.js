@@ -19,7 +19,7 @@ const KNEX_CONFIG = {
 };
 
 const SERVER = {
-  hostName: process.env.DEVELOPMENT_HOST,
+  hostName: process.env.PRODUCTION_HOST,
 };
 
 const knex = Knex(KNEX_CONFIG);
