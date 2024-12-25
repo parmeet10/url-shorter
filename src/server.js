@@ -12,6 +12,7 @@ import authsMiddleware from './middlewares/auth.js';
 // Include routers
 import authsRouter from './routes/auths.js';
 import urlsRouter from './routes/urls.js';
+import analyticsRouter from './routes/analytics.js';
 
 // Use JSON body parser
 app.use(express.json());
@@ -49,6 +50,7 @@ app.use(authsMiddleware);
 // Routes
 app.use('/auths', authsRouter);
 app.use('/api', urlsRouter);
+app.use('/api/analytics', analyticsRouter);
 
 // Catch 404s
 app.use((req, res) => {
@@ -56,7 +58,8 @@ app.use((req, res) => {
 });
 
 // Global error handler
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   if (err) {
     console.log(new Date().toISOString(), err);
     res.json(err);
