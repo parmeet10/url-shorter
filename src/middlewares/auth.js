@@ -1,7 +1,10 @@
 import defaultUserAgent from 'default-user-agent';
+import RateLimiter from '../services/rateLimiter.js';
 
 import wrapperService from '../services/wrapper.js';
 import authsService from '../services/auth.js';
+
+const limiter = new RateLimiter(300, 5);
 
 const middleware = async (req, res, next) => {
   let skip = false;
@@ -65,6 +68,11 @@ const middleware = async (req, res, next) => {
   if (!req.headers['x-auth']) {
     throw new Error('headers_missing');
   }
+
+  if (!limiter.checkLimit(req.ip)) {
+    throw new Error('rate_limited');
+  }
+
   let authParams = {};
   authParams.originId = parseInt(req.headers['x-origin']);
   authParams.platformId = parseInt(req.headers['x-platform']);
